@@ -4,3 +4,4 @@ configuraciones de vim
      <img height="0" width="8px"> 
      <img width="45%" src="https://raw.githubusercontent.com/geociencio/imagenes/main/vimimage/vimpythonoptimizado.png" alt="List screen" title="List screen"></img> 
 </div> 
+se configuro el archivo .vimrc para optimizar vim y editar codigo python
