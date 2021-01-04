@@ -1,0 +1,191 @@
+" NOTA:  Setting 'compatible' cambia numerosas opciones, asi que alguna
+" opcion se debe colocar 'set' DESPUES de 'set compatible'.
+" set compatible
+" Esta linea no deveria ser borrada ya que esto asegura que varias opciones
+" seran propiamente colocadas para trabajar con los paquetes relacionados a Vim.
+runtime! debian.vim
+
+" Configurar Powerline para vim
+python3 from powerline.vim import setup as powerline_setup
+python3 powerline_setup()
+python3 del powerline_setup
+
+" Los Complentos 'Plugins' seran descargados al directorio especificado.
+call plug#begin('~/.vim/plugged')
+" Declarar lista de complementos.
+Plug 'tpope/vim-sensible'
+Plug 'relastle/bluewery.vim'
+Plug 'jcherven/jummidark.vim'
+Plug 'wadackel/vim-dogrun'
+Plug 'vim-scripts/indentpython.vim'
+Plug 'python-mode/python-mode', { 'for': 'python', 'branch': 'develop' }
+Plug 'preservim/nerdtree'
+Plug 'doums/darcula'
+Plug 'sonph/onehalf', { 'rtp': 'vim' }
+Plug 'jacoborus/tender.vim'
+Plug 'kyoz/purify', { 'rtp': 'vim' }
+Plug 'preservim/nerdtree'
+Plug 'chrisbra/csv.vim'
+Plug 'itchyny/vim-parenmatch'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+
+" La lista finaliza aqui. los complementos seran visibles a vim en adelante.
+call plug#end()
+
+filetype plugin indent on      " Cargar las reglas de sangrias (indentacion) y 
+                               " Plugins de acuerdo a lo detectado por tipo de archivo.
+
+cmap w!! w !sudo tee % >/dev/null " Permite guardar archivo con sudo
+
+let NERDTreeIgnore = ['\.pyc$'] "Ignora los tipos de archivos especificados
+let NERDTreeShowHidden=1      " mostrar los archivos ocultos
+" ==========================================================
+" Ajustes Basicos
+" ==========================================================
+syntax on
+filetype on                   " intenta detectar tipos de archivos
+filetype plugin indent on     " habilitar la carga del archivo de sangría para 
+                              " el tipo de archivo
+set nu                        " Mostrar números de línea
+set numberwidth=1             " Número mínimo de columnas que se utilizarán para
+                              " el número de línea. Usar solo 1 columna 
+                              " (y 1 espacio) si posible
+set background=dark           " Estamos usando un fondo oscuro en vim.
+set title                     " mostrar título en la barra de título de la consola
+set wildmenu                  " menú completado en modo comando en <Tab>
+set wildmode=full             " <Tab> alterna entre todas las opciones coincidentes.
+set showcmd                   " Mostrar comando (parcial) en la última línea de 
+                              " la pantalla. Desactive esta opción si su terminal
+                              " es lento.
+set clipboard=unnamed         " Acceder al contenido de clipboard del sistema
+set backspace=indent,eol,start " Permitir retroceder sobre todo en el modo de 
+                               " inserción.
+" inoremap # #                  " No superes a los hashes
+set history=500               " Establece cuántas líneas de historia debe 
+                              " recordar Vim
+set tabstop=4                 " Iniciar la sangria en 4
+set shiftwidth=4              " cambiar el número de caracteres de espacio 
+                              " insertados para la sangría
+set expandtab                 " insertar caracteres de espacio siempre que se 
+                              " presione la tecla de tabulación
+set smarttab                  " afecta cómo se interpretan las pulsaciones de la
+                              " tecla <TAB> dependiendo de dónde esté el cursor
+set mouse=a                   " Habilite el uso del mouse para todos los modos
+" set ls=2                      " Mostrar siempre la línea de estado
+set ruler                     " Muestra la posición del cursor en la última 
+                              " línea de la pantalla o en la línea de estado de 
+                              " una ventana.
+"set showmatch                 " Mostrar corchetes coincidentes cuando el 
+                              " indicador de texto esté sobre ellos
+set encoding=utf8             " La codificación mostrada.
+set nobackup                  " No crear archivos de respaldo
+set noswapfile                " No crear archivos de intercambio
+
+" Obtener sangría para seguir los estándares PEP 8. y mejorar la manipulacion de
+" la sangría automática.
+let g:kite_supported_languages = ['*']
+let g:kite_snippets=0
+nmap <silent> <buffer> gK <Plug>(kite-docs)
+"au FileType python set omnifunc=pythoncomplete#Complete
+au Filetype python setlocal expandtab shiftwidth=4 tabstop=4 softtabstop=4 smartindent cinwords=if,elif,else,for,while,try,except,finally,def,class,with
+au BufRead *.py set efm=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%[%^\ ]%\\@=%m
+au FileType python set foldmethod=indent foldlevel=80
+
+" Arregla en columnas los archivos csv alineados a la izquierda
+let g:csv_autocmd_arrange = 1
+let b:csv_arrange_align = 'l*'
+
+" Ejecutar pyflake8
+autocmd FileType python map <Leader>8 :call Flake8()<CR>
+
+" Ejecutar cuando se guerden los archivos py
+autocmd BufWritePost *.py call Flake8()
+
+" Ignorar Errores
+let g:flake8_ignore="E501,W293"
+
+" Configurar airline
+let g:airline_section_b = '%{strftime("%c")}'
+let g:airline_section_y = 'BN: %{bufnr("%")}'
+let g:airline#extensions#tabline#enabled = 2
+let g:airline_powerline_fonts = 1
+let g:airline_theme='luna'
+set statusline=%<%f\ %h%m%r%{kite#statusline()}%=%-14.(%l,%c%V%)\ %P
+colorscheme purify           " Esquema de color
+
+" Enlaza F8 y F9 para ejecutar el script en la terminal, tiene que salir de vim para 
+" ver el resultado
+" tomado de https://stackoverflow.com/a/53491844/4199147
+autocmd FileType python map <buffer> <F9> :w<CR>:exec '!python3' shellescape(@%, 1)<CR>
+autocmd FileType python imap <buffer> <F8> <esc>:w<CR>:exec '!python3' shellescape(@%, 1)<CR>
+
+" Tomado y modificado de  https://stackoverflow.com/a/40195855/4199147
+" Enlaza F5 para guardar el archivo si se modifica y ejecutar el 
+" script de Python en un búfer y se redirige a una nueva ventana de Vim (y si 
+" esa ventana se deja abierta, actualiza su contenido la próxima vez que ejecute 
+" código Python con esta función):
+nnoremap <silent> <F5> :call SaveAndExecutePython()<CR>
+vnoremap <silent> <F5> :<C-u>call SaveAndExecutePython()<CR>
+
+
+
+function! SaveAndExecutePython()
+    " SOURCE [reusable window]:
+    " https://github.com/fatih/vim-go/blob/master/autoload/go/ui.vim
+
+    " save and reload current file
+    silent execute "update | edit"
+
+    " get file path of current file
+    let s:current_buffer_file_path = expand("%")
+
+    let s:output_buffer_name = "Python"
+    let s:output_buffer_filetype = "output"
+
+    " reuse existing buffer window if it exists otherwise create a new one
+    if !exists("s:buf_nr") || !bufexists(s:buf_nr)
+        silent execute 'vertical new ' . s:output_buffer_name
+        let s:buf_nr = bufnr('%')
+    elseif bufwinnr(s:buf_nr) == -1
+        silent execute 'vertical new'
+        silent execute s:buf_nr . 'buffer'
+    elseif bufwinnr(s:buf_nr) != bufwinnr('%')
+        silent execute bufwinnr(s:buf_nr) . 'wincmd w'
+    endif
+
+    silent execute "setlocal filetype=" . s:output_buffer_filetype
+    setlocal bufhidden=delete
+    setlocal buftype=nofile
+    setlocal noswapfile
+    setlocal nobuflisted
+    setlocal winfixheight
+    setlocal cursorline " make it easy to distinguish
+    setlocal nonumber
+    setlocal norelativenumber
+    setlocal showbreak=""
+
+    " clear the buffer
+    setlocal noreadonly
+    setlocal modifiable
+    %delete _
+
+    " add the console output
+    silent execute ".!python3 " . shellescape(s:current_buffer_file_path, 1)
+
+    " resize window to content length
+    " Note: This is annoying because if you print a lot of lines then your code buffer is forced to a height of one line every time you run this function.
+    "       However without this line the buffer starts off as a default size and if you resize the buffer then it keeps that custom size after repeated runs of this function.
+    "       But if you close the output buffer then it returns to using the default size when its recreated
+    "execute 'resize' . line('$')
+
+    " make the buffer non modifiable
+    setlocal readonly
+    setlocal nomodifiable
+endfunction
+
+" Source a global configuration file if available
+if filereadable("/etc/vim/vimrc.local")
+  source /etc/vim/vimrc.local
+endif
+
