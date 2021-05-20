@@ -5,6 +5,14 @@ set compatible
 " seran propiamente colocadas para trabajar con los paquetes relacionados a Vim.
 runtime! archlinux.vim
 
+				" Verificar si plug.vim se encuentra en el equipo de lo 
+				" contrario instalarlo
+if empty(glob('~/.vim/autoload/plug.vim'))
+    silent !curl -flo ~/.vim/autoload/plug.vim --create-dirs
+        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+      autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
 " Los Complentos 'Plugins' seran descargados al directorio especificado.
 call plug#begin('~/.vim/plugged')
 
